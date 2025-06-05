@@ -8,5 +8,5 @@ class MessageRequest(BaseModel):
 
 # Response
 class MessageResponse(BaseModel):
-    role: str
+    role: str = "Assistant"
     content: str

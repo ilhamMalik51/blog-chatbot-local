@@ -20,4 +20,7 @@ def orchestrate(request: MessageRequest, llm : ChatOpenAI = Depends(init_basic_l
     # process chat history
     response_content = basic_chat_completion()
 
-    return {"message": "Orchestration started"}
+    # handling message response
+    message = MessageResponse(content=response_content)
+
+    return {"data": message.model_dump()}
