@@ -19,6 +19,7 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ===== Backend Section =====
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Orchestrator API!"}
