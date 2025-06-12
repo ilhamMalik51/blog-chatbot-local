@@ -1,5 +1,9 @@
+import logging
+
 from langchain_openai import ChatOpenAI
 from config import config
+
+logger = logging.getLogger()
 
 def init_basic_llm() -> ChatOpenAI:
     """
@@ -28,5 +32,7 @@ def basic_chat_completion(
         print(f"Error during chat completion: {e}")
         
         return "An error occurred while processing your request."
+    
+    logger.info(f"Response from model: {response.content}")
     
     return response.content

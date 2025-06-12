@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Chatroom with Markdown</title>
   <!-- Import external CSS file -->
-  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/api/static/style.css">
   <!-- Style for katex format -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
   <!-- Markdown parser -->
@@ -25,6 +25,8 @@
   </div>
 
   <script>
+    const apiKey = "{{ api_key }}";
+
     const chatBox = document.getElementById('chat-box');
     const form    = document.getElementById('message-form');
     const input   = document.getElementById('message');
@@ -58,19 +60,24 @@
       input.value = '';
 
       // send to backend
-      const res = await fetch('/conversation-rest', {
+      const res = await fetch('/api/orchestrate', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-api-key': 'b77ac76b1fea998b96a5399a681645b8abab52202b937d6d1270a9451807f7d9'   // add your key if needed
+          'x-api-key': apiKey   // add your key if needed
         },
-        body: JSON.stringify({ sentence: userText })
+        body: JSON.stringify({ 
+          role: 'user',
+          content: userText,
+          use_tool: false
+        })
       });
       const reply = await res.json();
 
       // render assistant bubble (with markdown)
-      const assistantText = reply.data ?? '';
-      appendBubble(assistantText, 'assistant');
+      const assistantText = reply.data.content ?? '';
+      const role = reply.data.role ?? 'assistant';
+      appendBubble(assistantText, role);
     });
   </script>
 </body>
