@@ -40,3 +40,23 @@ def basic_chat_completion(
     logger.info(f"Response from model: {response.content}")
     
     return response.content
+
+async def basic_streaming_completion(
+        messages: list[dict], 
+        model: ChatOpenAI = None):
+    """
+    Perform a streaming chat completion using the provided messages and model.
+    """
+    if model is None:
+        model = init_basic_llm()
+    
+    try:
+        ai_responses = []
+        for chunk in model.stream(messages):
+            ai_responses.append(chunk.content)
+            yield chunk.content
+    
+    except Exception as e:
+        print(f"Error during streaming chat completion: {e}")
+
+        yield "Error during streaming: " + str(e)

@@ -13,7 +13,6 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
-  <!-- pada november 2024, berapa jumlah penjualan untuk kategori tunai dan kredit? -->
 </head>
 <body>
   <div class="chat-container">
@@ -30,6 +29,9 @@
     const chatBox = document.getElementById('chat-box');
     const form    = document.getElementById('message-form');
     const input   = document.getElementById('message');
+    
+    // Store the session ID for maintaining chat history
+    let currentAssistantMessage = '..';
 
     // Append bubble with Markdown rendering
     function appendBubble(text, cls) {
@@ -48,6 +50,62 @@
           { left: "[",  right: "]",  display: false }
         ]
       });
+      
+      return div;
+    }
+
+    // Helper function for streaming requests
+    async function streamRequest(url, body, onChunk, onDone, onError) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+            if (onDone) onDone();
+            break;
+          }
+
+          // Decode the chunk and add it to our buffer
+          buffer += decoder.decode(value, { stream: true });
+          
+          // Process any complete messages in the buffer
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() || ''; // Keep the last incomplete chunk in the buffer
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.content) onChunk(data.content);
+                if (data.done && onDone) onDone();
+                if (data.error && onError) onError(data.error);
+                if (data.session_id) sessionId = data.session_id;
+              } catch (e) {
+                console.error('Error parsing SSE data:', e);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        if (onError) onError(error.message);
+      }
     }
 
     form.addEventListener('submit', async e => {
@@ -59,25 +117,44 @@
       appendBubble(userText, 'user');
       input.value = '';
 
-      // send to backend
-      const res = await fetch('/api/orchestrate', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey   // add your key if needed
-        },
-        body: JSON.stringify({ 
+      // Create placeholder for assistant's response
+      const assistantDiv = document.createElement('div');
+      assistantDiv.classList.add('message', 'assistant');
+      chatBox.appendChild(assistantDiv);
+      
+      // Reset current assistant message
+      currentAssistantMessage = '';
+      
+      // Use the streaming endpoint
+      streamRequest(
+        '/api/orchestrate/stream', 
+        { 
           role: 'user',
           content: userText,
-          use_tool: false
-        })
-      });
-      const reply = await res.json();
-
-      // render assistant bubble (with markdown)
-      const assistantText = reply.data.content ?? '';
-      const role = reply.data.role ?? 'assistant';
-      appendBubble(assistantText, role);
+          use_tool: false,
+        },
+        // On chunk received
+        (chunk) => {
+          currentAssistantMessage += chunk;
+          assistantDiv.innerHTML = DOMPurify.sanitize(marked.parse(currentAssistantMessage));
+          chatBox.scrollTop = chatBox.scrollHeight;
+        },
+        // On done
+        () => {
+          renderMathInElement(assistantDiv, {
+            delimiters: [
+              { left: "[[", right: "]]", display: true },
+              { left: "[",  right: "]",  display: false }
+            ]
+          });
+        },
+        // On error
+        (error) => {
+          assistantDiv.innerHTML = DOMPurify.sanitize(marked.parse(
+            "⚠️ Error: " + error
+          ));
+        }
+      );
     });
   </script>
 </body>
