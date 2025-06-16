@@ -1,17 +1,18 @@
-import os
+import os, logging
 
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from langchain_openai import ChatOpenAI
-from langchain.schema import HumanMessage
+from langchain.schema import HumanMessage, AIMessage
 
 from schema import MessageRequest, MessageResponse
 
-from langchain.globals import set_llm_cache
-
 from service import init_basic_llm, basic_chat_completion
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(openapi_prefix="/api")
 templates = Jinja2Templates(directory="templates")
@@ -19,6 +20,9 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ===== Backend Section =====
+
+# In memory chat history for demonstration purposes
+CHAT_HISTORY = []
 
 @app.get("/")
 async def root():
@@ -34,24 +38,30 @@ async def orchestrate(request: MessageRequest,
         llm.bind_tools([])
 
     if isinstance(request.content, str):
-        messages = [HumanMessage(content=request.content)]
+        CHAT_HISTORY.append(HumanMessage(content=request.content))
+        messages = CHAT_HISTORY.copy()
 
     else:
         return HTTPException(
             status_code=400,
             detail="Invalid request format. 'content' must be a string."
         )
+    
+    logger.info(f"Messages: {messages}")
 
     # process chat history
     response_content = basic_chat_completion(messages=messages, model=llm)
 
     # handling message response
-    message = MessageResponse(content=response_content)
+    ai_message = MessageResponse(content=response_content)
+
+    # save ai response to chat history
+    CHAT_HISTORY.append(AIMessage(content=response_content))
 
     return JSONResponse(
         content={
             "success": True,
-            "data": message.model_dump()
+            "data": ai_message.model_dump()
         },
         status_code=200
     )

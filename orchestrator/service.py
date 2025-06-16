@@ -1,9 +1,13 @@
 import logging
 
 from langchain_openai import ChatOpenAI
+from langchain.schema import HumanMessage, AIMessage
 from config import config
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
+
+# Glibal variable to hold chat history
+CHAT_HISTORY = []
 
 def init_basic_llm() -> ChatOpenAI:
     """
