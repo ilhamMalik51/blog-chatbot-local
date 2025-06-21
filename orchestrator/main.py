@@ -96,7 +96,7 @@ async def orchestrate(request: MessageRequest,
             async for chunk in basic_streaming_completion(messages=messages, model=llm):
                 if chunk:
                     complete_response.append(chunk)
-                    yield f"data: {json.dumps({'content': chunk})}\n\n"
+                    yield f"{json.dumps({'content': chunk})}\n\n"
                     
             # Once streaming is complete, store the full response in chat history
             if complete_response:
@@ -105,11 +105,11 @@ async def orchestrate(request: MessageRequest,
                 CHAT_HISTORY.append(ai_message)
                 
             # Send a done message
-            yield f"data: {json.dumps({'done': True})}\n\n"
+            yield f"{json.dumps({'done': True})}\n\n"
             
         except Exception as e:
             logger.error(f"Error in streaming: {str(e)}")
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield f"{json.dumps({'error': str(e)})}\n\n"
             
     return StreamingResponse(
         stream_generator(),
