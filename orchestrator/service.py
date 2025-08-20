@@ -1,7 +1,6 @@
 import logging
 
 from langchain_openai import ChatOpenAI
-from langchain.schema import HumanMessage, AIMessage
 from config import config
 
 logger = logging.getLogger(__name__)

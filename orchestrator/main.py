@@ -8,7 +8,6 @@ from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage, AIMessage
 
 from schema import MessageRequest, MessageResponse
-
 from service import init_basic_llm, basic_chat_completion, basic_streaming_completion
 
 # logging.basicConfig(level=logging.INFO)
@@ -69,9 +68,7 @@ async def orchestrate(request: MessageRequest,
 @app.post("/orchestrate/stream")
 async def orchestrate(request: MessageRequest, 
                       llm : ChatOpenAI = Depends(init_basic_llm)) -> MessageResponse:
-    """
-    Orchestrate the request.
-    """
+    """Orchestrate the request."""
     if request.use_tool is True:
         llm.bind_tools([])
 
