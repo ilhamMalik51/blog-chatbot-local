@@ -15,21 +15,27 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
 </head>
 <body>
-  <div class="rag-toggle-container">
-    <label style="display: inline-block; margin-bottom: 10px; font-weight: bolder;" for="rag-toggle">Use RAG </label>
-    <label class="toggle">
-      <input type="checkbox" id="rag-toggle" />
-      <span class="slider"></span>
-    </label>
-  </div>
-  <div class="chat-container">
-    <div id="chat-box"></div>
-      <div style="margin-top: 10px; display: flex; align-items: center;">
+  <div class="main-layout">
+    <aside class="sidebar">
+      <h3> 💬 Local LLM Capabilities!</h3>
+      <div class="rag-toggle-container">
+        <label style="font-weight: bolder;" for="rag-toggle">Use RAG </label>
+        <label class="toggle">
+          <input type="checkbox" id="rag-toggle" />
+          <span class="slider"></span>
+        </label>
       </div>
-      <form id="message-form">
-        <input type="text" id="message" placeholder="Type a message..." required autocomplete="off" />
-        <button type="submit">Send</button>
-      </form>
+    </aside>
+
+    <div class="chat-container">
+      <div id="chat-box"></div>
+        <div style="margin-top: 10px; display: flex; align-items: center;">
+        </div>
+        <form id="message-form">
+          <input type="text" id="message" placeholder="Type a message..." required autocomplete="off" />
+          <button type="submit">Send</button>
+        </form>
+    </div>
   </div>
 
   <script>
