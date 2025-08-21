@@ -2,7 +2,7 @@
 
 source: [https://www.youtube.com/watch?v=lBBXmim527A](https://www.youtube.com/watch?v=lBBXmim527A)
 
-Warren Buffet said financial statements is the language of business. If you don’t understand them you don’t business to invest in individual stocks.
+Warren Buffet said financial statements is the language of business. If you don’t understand them you don’t have business to invest in individual stocks.
 
 Here are the key take aways:
 
