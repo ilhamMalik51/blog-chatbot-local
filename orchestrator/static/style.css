@@ -67,7 +67,7 @@ input:checked + .slider:before {
 
 /* Sidebar: fixed 30% of available width */
 .sidebar {
-  flex: 0 0 20%;    /* prevents shrinking below 30% of container width */
+  flex: 0 0 18%;    /* prevents shrinking below 18% of container width */
   min-width: 240px; /* ensure usability on smaller screens */
   height: 100%;
   display: flex;
