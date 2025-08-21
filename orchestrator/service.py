@@ -24,18 +24,15 @@ def init_basic_llm() -> ChatOpenAI:
     )
 
 def init_basic_embedding() -> OpenAIEmbeddings:
-    """
-    Initialize the embedding model.
-    """
+    """Initialize the embedding model."""
     return OpenAIEmbeddings(
         base_url=config.OPENAI_EMBEDDING_ENDPOINT,
         api_key=config.OPENAI_API_KEY,
     )
 
-def search_vector_db(query: str, vector_db: QdrantClient = QdrantClient(url=config.QDRANT_ENDPOINT)) -> list[dict]:
-    """
-    Search the vector database for similar documents.
-    """
+def search_vector_db(query: str, 
+                     vector_db: QdrantClient = QdrantClient(url=config.QDRANT_ENDPOINT)) -> list[dict]:
+    """Search the vector database for similar documents."""
     results = vector_db.query_points(
         collection_name=COLLECTION_NAME,
         query=query,
