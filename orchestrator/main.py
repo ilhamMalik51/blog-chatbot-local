@@ -8,7 +8,10 @@ from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage, AIMessage
 
 from schema import MessageRequest, MessageResponse
-from service import init_basic_llm, basic_chat_completion, basic_streaming_completion
+from service import (
+    init_basic_llm, basic_chat_completion, stream_generator, 
+    basic_streaming_completion, rag_streaming_completion
+)
 
 # logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -66,50 +69,26 @@ async def orchestrate(request: MessageRequest,
     )
 
 @app.post("/orchestrate/stream")
-async def orchestrate(request: MessageRequest, 
+async def orchestrate(request: MessageRequest,
                       llm : ChatOpenAI = Depends(init_basic_llm)) -> MessageResponse:
     """Orchestrate the request."""
     if request.use_tool is True:
         llm.bind_tools([])
-
-    if isinstance(request.content, str):
-        CHAT_HISTORY.append(HumanMessage(content=request.content))
-        messages = CHAT_HISTORY.copy()
+    
+    if request.use_rag is True:
+        streaming_completion = rag_streaming_completion
 
     else:
-        return HTTPException(
-            status_code=400,
-            detail="Invalid request format. 'content' must be a string."
-        )
+        streaming_completion = basic_streaming_completion
     
-    logger.info(f"Messages: {messages}")
+    message = request.content
+    logger.info(f"Messages: {message}")
 
-    complete_response = []
-    async def stream_generator():
-        nonlocal complete_response
-        
-        try:
-            # Use the streaming completion function
-            async for chunk in basic_streaming_completion(messages=messages, model=llm):
-                if chunk:
-                    complete_response.append(chunk)
-                    yield f"{json.dumps({'content': chunk})}\n\n"
-                    
-            # Once streaming is complete, store the full response in chat history
-            if complete_response:
-                full_response = "".join(complete_response)
-                ai_message = AIMessage(content=full_response)
-                CHAT_HISTORY.append(ai_message)
-                
-            # Send a done message
-            yield f"{json.dumps({'done': True})}\n\n"
-            
-        except Exception as e:
-            logger.error(f"Error in streaming: {str(e)}")
-            yield f"{json.dumps({'error': str(e)})}\n\n"
-            
     return StreamingResponse(
-        stream_generator(),
+        stream_generator(message=message,
+                         chat_history=CHAT_HISTORY,
+                         model=llm,
+                         streaming_completion=streaming_completion),
         media_type="text/event-stream"
     )
 

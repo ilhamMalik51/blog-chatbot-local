@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class MessageRequest(BaseModel):
     role: str
     use_tool: bool
+    use_rag: bool = False
     content: str
 
 # Response

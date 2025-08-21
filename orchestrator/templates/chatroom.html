@@ -15,12 +15,21 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
 </head>
 <body>
+  <div class="rag-toggle-container">
+    <label style="display: inline-block; margin-bottom: 10px; font-weight: bolder;" for="rag-toggle">Use RAG </label>
+    <label class="toggle">
+      <input type="checkbox" id="rag-toggle" />
+      <span class="slider"></span>
+    </label>
+  </div>
   <div class="chat-container">
     <div id="chat-box"></div>
-    <form id="message-form">
-      <input type="text" id="message" placeholder="Type a message..." required autocomplete="off" />
-      <button type="submit">Send</button>
-    </form>
+      <div style="margin-top: 10px; display: flex; align-items: center;">
+      </div>
+      <form id="message-form">
+        <input type="text" id="message" placeholder="Type a message..." required autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
   </div>
 
   <script>
@@ -32,6 +41,12 @@
     
     // Store the session ID for maintaining chat history
     let currentAssistantMessage = '..';
+    // Variable to track RAG usage
+    let use_rag = false;
+    const ragToggle = document.getElementById('rag-toggle');
+    ragToggle.addEventListener('change', function() {
+      use_rag = ragToggle.checked;
+    });
 
     // Append bubble with Markdown rendering
     function appendBubble(text, cls) {
@@ -132,6 +147,7 @@
           role: 'user',
           content: userText,
           use_tool: false,
+          use_rag: use_rag,
         },
         // On chunk received
         (chunk) => {
